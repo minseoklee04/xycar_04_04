@@ -6,7 +6,7 @@ import numpy as np
 cap = cv2.VideoCapture('2.avi')
 
 # value start point
-value_threshold = 170
+# value_threshold = 170
 
 # ROI y-coordinate's start point
 roi_vertical_pos = 300
@@ -42,15 +42,15 @@ while True:
         break
 
     # test
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(frame[roi_vertical_pos:roi_vertical_pos + scan_height, :], cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
     edge = cv2.Canny(blur, 30, 150)
     edge = cv2.cvtColor(edge, cv2.COLOR_GRAY2BGR)
-    edge = cv2.rectangle(edge, (0, roi_vertical_pos),
-                          (image_width - 1, roi_vertical_pos + scan_height),
-                          (255, 0, 0), 3)
 
     hsv2 = cv2.cvtColor(edge, cv2.COLOR_BGR2HSV)
+
+    avg_value = np.average(hsv2[:, :, 2])
+    value_threshold = avg_value * 1.0
 
     lbound_1 = np.array([0, 0, value_threshold], dtype=np.uint8)
     ubound_1 = np.array([255, 128, 255], dtype=np.uint8)
@@ -59,23 +59,23 @@ while True:
 
     left_start = -1
     for l in range(lmid, area_width, -1):
-        area = bin_1[roi_vertical_pos + row_begin: roi_vertical_pos + row_end, l: l + area_width]
+        area = bin_1[row_begin:row_end, l: l + area_width]
         if cv2.countNonZero(area) > 10:
             left_start = l - area_width
             left_square2 = cv2.rectangle(edge,
-                                        (l - area_width, roi_vertical_pos + row_begin),
-                                        (l, roi_vertical_pos + row_end),
+                                        (l - area_width, row_begin),
+                                        (l, row_end),
                                         (0, 255, 255), 2)
             break
 
     right_start = -1
     for r in range(rmid, image_width - area_width):
-        area = bin_1[roi_vertical_pos + row_begin: roi_vertical_pos + row_end, r - area_width:r]
+        area = bin_1[row_begin:row_end, r - area_width:r]
         if cv2.countNonZero(area) > 10:
             right_start = r + area_width
             right_square2 = cv2.rectangle(edge,
-                                         (r + area_width, roi_vertical_pos + row_begin),
-                                         (r, roi_vertical_pos + row_end),
+                                         (r + area_width, row_begin),
+                                         (r, row_end),
                                          (0, 255, 255), 2)
             break
     # test end
@@ -96,6 +96,9 @@ while True:
 
     # ROI convert HSV origin
     hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+
+    avg_value = np.average(hsv[:, :, 2])
+    value_threshold = avg_value * 1.0
 
     lbound = np.array([0, 0, value_threshold], dtype=np.uint8)
     ubound = np.array([255, 128, 255], dtype=np.uint8)
