@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy
 import cv2
 import numpy as np
@@ -9,6 +10,7 @@ class LineDetector:
 
     def __init__(self, topic):
         # Initialize various class-defined attributes, and then...
+        self.left, self.right = -1, -1
         self.roi_vertical_pos = 300
         self.scan_height = 20
         self.image_width = 640
@@ -52,7 +54,7 @@ class LineDetector:
                               (self.image_width - 1, self.roi_vertical_pos + self.scan_height),
                               (255, 0, 0), 3)
 
-        hsv2 = self.edge
+        hsv2 = cv2.cvtColor(self.edge, cv2.COLOR_BGR2HSV)
 
         avg_value = np.average(hsv2[:, :, 2])
         value_threshold = avg_value * 1.0
@@ -65,51 +67,54 @@ class LineDetector:
         left_start = -1
         for l in range(lmid, self.area_width, -1):
             area = bin_1[self.row_begin:self.row_end, l: l + self.area_width]
-            if cv2.countNonZero(area) > 10:
+            if cv2.countNonZero(area) > 1:
                 left_start = l - self.area_width
                 break
 
         right_start = -1
         for r in range(rmid, self.image_width - self.area_width):
             area = bin_1[self.row_begin:self.row_end, r - self.area_width:r]
-            if cv2.countNonZero(area) > 10:
+            if cv2.countNonZero(area) > 1:
                 right_start = r + self.area_width
                 break
 
-        left, right = -1, -1
-
         for l in range(left_start, lmid):
-            area = bin[self.row_begin:self.row_end, l: l + self.area_width]
+            area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
             if cv2.countNonZero(area) > pixel_cnt_threshold:
-                left = l
+                self.left = l
                 break
 
         for r in range(right_start, rmid, -1):
-            area = bin[self.row_begin:self.row_end, r - self.area_width: r]
+            area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
             if cv2.countNonZero(area) > pixel_cnt_threshold:
-                right = r
+                self.right = r
                 break
+        print(left_start, "    ", right_start)
+        print(self.left, "    ", self.right)
+        
 
         # Return positions of left and right lines detected.
-        return left, right
+        return self.left, self.right
 
     def show_images(self, left, right):
-        if left != -1:
+        if self.left != -1:
             self.cam_img = cv2.rectangle(self.cam_img,
-                                    (left, self.row_begin),
-                                    (left + self.area_width, self.row_end),
+                                    (left, self.roi_vertical_pos + self.row_begin),
+                                    (left + self.area_width, self.roi_vertical_pos + self.row_end),
                                     (0, 255, 255), 2)
         else:
             print("Lost left line")
-        if right != -1:
+        if self.right != -1:
             self.cam_img = cv2.rectangle(self.cam_img,
-                                    (right - self.area_width, self.row_begin),
-                                    (right, self.row_end),
+                                    (right - self.area_width, self.roi_vertical_pos + self.row_begin),
+                                    (right, self.roi_vertical_pos + self.row_end),
                                     (0, 255, 255), 2)
         else:
             print("Lost right line")
 
         cv2.imshow("view", self.cam_img)
+        cv2.imshow("view2", self.mask)
+        cv2.imshow("view3", self.edge)
         cv2.waitKey(1)
         # Display images for debugging purposes;
         # do not forget to call cv2.waitKey().
