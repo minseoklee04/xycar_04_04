@@ -5,6 +5,9 @@ import numpy as np
 
 cap = cv2.VideoCapture('2.avi')
 
+# return value
+left, right = -1, -1
+
 # value start point
 # value_threshold = 170
 
@@ -15,9 +18,9 @@ roi_vertical_pos = 300
 image_width = 640
 
 # To find lane from x-coordinate 0~180 to 20~200 and from 620~440 to 640~460(reverse)
-scan_width = 250
-lmid = scan_width  # 250
-rmid = image_width - lmid  # 390
+scan_width = 200
+lmid = scan_width  # 200
+rmid = image_width - lmid  # 440
 
 # blue square y-coordinate's length and ROI y-coordinate's length
 scan_height = 20
@@ -78,6 +81,10 @@ while True:
                                          (r, row_end),
                                          (0, 255, 255), 2)
             break
+
+    if right_start < (right + 320) // 2:
+        left_start = -1
+
     # test end
 
     # At screen, blue square
@@ -110,24 +117,27 @@ while True:
     # To show yellow square, convert
     view = cv2.cvtColor(bin, cv2.COLOR_GRAY2BGR)
 
-    left, right = -1, -1
+    if right_start != -1:
+        left = -1
+        # for l in range(left_start, 200):
+        for l in range(left_start, lmid):
+            # y-value is fixed form 5 to 15, x-value(20) range(from 0 to 200)
+            area = bin[row_begin:row_end, l: l + area_width]
+            # if white color is more than pixel_cnt, left yellow square start point is l
+            if cv2.countNonZero(area) > pixel_cnt_threshold:
+                left = l
+                break
 
-    # for l in range(left_start, 250):
-    for l in range(left_start, lmid):
-        # y-value is fixed form 5 to 15, x-value(20) range(from 0 to 200)
-        area = bin[row_begin:row_end, l: l + area_width]
-        # if white color is more than pixel_cnt, left yellow square start point is l
-        if cv2.countNonZero(area) > pixel_cnt_threshold:
-            left = l
-            break
-    # for r in range(right_start, 390, -1):
-    for r in range(right_start, rmid, -1):
-        # y-value is fixed form 5 to 15, x-value(20) range(from 620 to 440, -1)
-        area = bin[row_begin:row_end, r - area_width: r]
-        # if white color is more than pixel_cnt, left yellow square start point is l
-        if cv2.countNonZero(area) > pixel_cnt_threshold:
-            right = r
-            break
+    if left_start != -1:
+        right = -1
+        # for r in range(right_start, 440, -1):
+        for r in range(right_start, rmid, -1):
+            # y-value is fixed form 5 to 15, x-value(20) range(from 620 to 440, -1)
+            area = bin[row_begin:row_end, r - area_width: r]
+            # if white color is more than pixel_cnt, left yellow square start point is l
+            if cv2.countNonZero(area) > pixel_cnt_threshold:
+                right = r
+                break
 
     if left != -1:
         # test
@@ -165,3 +175,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
