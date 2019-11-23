@@ -107,9 +107,6 @@ class LineDetector:
         # Display images for debugging purposes;
         # do not forget to call cv2.waitKey().
         pass
-
-
-    def show_images(self, left, right):
         # if self.left != -1:
         #     self.cam_img = cv2.rectangle(self.cam_img,
         #                                  (left, self.roi_vertical_pos + self.row_begin),
