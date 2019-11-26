@@ -83,14 +83,14 @@ class LineDetector:
         if right_start - self.right > 20:
             left_start = left_start // 2
 
-        if right_start > 560:
+        if right_start != -1:
             for l in range(left_start, lmid):
                 area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
                 if cv2.countNonZero(area) > pixel_cnt_threshold:
                     self.left = l
                     break
 
-        if left_start < 80:
+        if left_start != -1:
             for r in range(right_start, rmid, -1):
                 area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
                 if cv2.countNonZero(area) > pixel_cnt_threshold:
