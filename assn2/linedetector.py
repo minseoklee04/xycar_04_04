@@ -11,10 +11,10 @@ class LineDetector:
     def __init__(self, topic):
         # Initialize various class-defined attributes, and then...
         self.left, self.right = -1, -1
-        self.roi_vertical_pos = 300
+        self.roi_vertical_pos = 290
         self.scan_height = 20
         self.image_width = 640
-        self.scan_width = 250
+        self.scan_width = 200
         self.area_width = 20
         self.area_height = 10
         self.row_begin = (self.scan_height - self.area_height) // 2
@@ -34,14 +34,14 @@ class LineDetector:
 
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
         avg_value = np.average(hsv[:, :, 2])
-        value_threshold = avg_value * 1.0
+        value_threshold = avg_value * 1.3
         lbound = np.array([0, 0, value_threshold], dtype=np.uint8)
         ubound = np.array([100, 255, 255], dtype=np.uint8)
         self.mask = cv2.inRange(hsv, lbound, ubound)
 
         gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         blur = cv2.GaussianBlur(gray, (5, 5), 0)
-        edge = cv2.Canny(blur, 30, 150)
+        edge = cv2.Canny(blur, 10, 100)
         self.edge = cv2.cvtColor(edge, cv2.COLOR_GRAY2BGR)
 
     def detect_lines(self):
@@ -51,8 +51,8 @@ class LineDetector:
         pixel_cnt_threshold = 0.3 * self.area_width * self.area_height
 
         self.cam_img = cv2.rectangle(self.cam_img, (0, self.roi_vertical_pos),
-                              (self.image_width - 1, self.roi_vertical_pos + self.scan_height),
-                              (255, 0, 0), 3)
+                                     (self.image_width - 1, self.roi_vertical_pos + self.scan_height),
+                                     (255, 0, 0), 3)
 
         hsv2 = cv2.cvtColor(self.edge, cv2.COLOR_BGR2HSV)
 
@@ -77,45 +77,84 @@ class LineDetector:
             if cv2.countNonZero(area) > 1:
                 right_start = r + self.area_width
                 break
+        if self.left - left_start > 20:
+            right_start = right_start * 2
 
-        for l in range(left_start, lmid):
-            area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
-            if cv2.countNonZero(area) > pixel_cnt_threshold:
-                self.left = l
-                break
+        if right_start - self.right > 20:
+            left_start = left_start // 2
 
-        for r in range(right_start, rmid, -1):
-            area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
-            if cv2.countNonZero(area) > pixel_cnt_threshold:
-                self.right = r
-                break
-        print(left_start, "    ", right_start)
-        print(self.left, "    ", self.right)
-        
+        if right_start > 560:
+            for l in range(left_start, lmid):
+                area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
+                if cv2.countNonZero(area) > pixel_cnt_threshold:
+                    self.left = l
+                    break
+
+        if left_start < 80:
+            for r in range(right_start, rmid, -1):
+                area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
+                if cv2.countNonZero(area) > pixel_cnt_threshold:
+                    self.right = r
+                    break
+
+        print("l", left_start, "start", "r", right_start)
 
         # Return positions of left and right lines detected.
         return self.left, self.right
 
     def show_images(self, left, right):
-        if self.left != -1:
-            self.cam_img = cv2.rectangle(self.cam_img,
-                                    (left, self.roi_vertical_pos + self.row_begin),
-                                    (left + self.area_width, self.roi_vertical_pos + self.row_end),
-                                    (0, 255, 255), 2)
-        else:
-            print("Lost left line")
-        if self.right != -1:
-            self.cam_img = cv2.rectangle(self.cam_img,
-                                    (right - self.area_width, self.roi_vertical_pos + self.row_begin),
-                                    (right, self.roi_vertical_pos + self.row_end),
-                                    (0, 255, 255), 2)
-        else:
-            print("Lost right line")
-
-        cv2.imshow("view", self.cam_img)
-        cv2.imshow("view2", self.mask)
-        cv2.imshow("view3", self.edge)
-        cv2.waitKey(1)
+        # cv2.waitKey(1)
         # Display images for debugging purposes;
         # do not forget to call cv2.waitKey().
         pass
+        # if self.left != -1:
+        #     self.cam_img = cv2.rectangle(self.cam_img,
+        #                                  (left, self.roi_vertical_pos + self.row_begin),
+        #                                  (left + self.area_width, self.roi_vertical_pos + self.row_end),
+        #                                  (0, 255, 255), 2)
+        # else:
+        #     print("Lost left line")
+        #     print(" ")
+        # if self.right != -1:
+        #     self.cam_img = cv2.rectangle(self.cam_img,
+        #                                  (right - self.area_width, self.roi_vertical_pos + self.row_begin),
+        #                                  (right, self.roi_vertical_pos + self.row_end),
+        #                                  (0, 255, 255), 2)
+        # else:
+        #     print("Lost right line")
+        #     print(" ")
+
+        # cv2.imshow("view", self.cam_img)
+        # cv2.imshow("view2", self.mask)
+        # cv2.imshow("view3", self.edge)
+        # cv2.waitKey(1)
+        # Display images for debugging purposes;
+        # do not forget to call cv2.waitKey().
+        pass
+
+    #   if right_start - self.right < 20:
+    #         for l in range(left_start, lmid):
+    #             area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
+    #             if cv2.countNonZero(area) > pixel_cnt_threshold:
+    #                 self.left = l
+    #                 break
+
+    #     if self.left - left_start < 20:
+    #         for r in range(right_start, rmid, -1):
+    #             area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
+    #             if cv2.countNonZero(area) > pixel_cnt_threshold:
+    #                 self.right = r
+    #                 break
+        # if not self.right == -1 and right_start - self.right < 20:
+        #     for l in range(left_start, lmid):
+        #         area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
+        #         if cv2.countNonZero(area) > pixel_cnt_threshold:
+        #             self.left = l
+        #             break
+
+        # if not self.left != -1 and self.left - left_start < 20:
+        #     for r in range(right_start, rmid, -1):
+        #         area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
+        #         if cv2.countNonZero(area) > pixel_cnt_threshold:
+        #             self.right = r
+        #             break

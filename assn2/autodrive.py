@@ -25,10 +25,12 @@ class AutoDrive:
 
     def steer(self, left, right):
         mid = (left + right) // 2
+        print("reft",left,"mid",mid,"right", right,)
+        print("")
         if mid < 280:
-            angle = -30
+            angle = -40
         elif mid > 360:
-            angle = 30
+            angle = 40
         else:
             angle = 0
         return angle
@@ -36,8 +38,8 @@ class AutoDrive:
     def accelerate(self, angle, left, mid, right):
         if min(left, mid, right) < 50:
             speed = 0
-        elif angle < -20 or angle > 20:
-            speed = 20
+        if angle < -20 or angle > 20:
+            speed = 25
         else:
             speed = 30
         return speed
