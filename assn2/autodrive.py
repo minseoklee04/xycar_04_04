@@ -17,31 +17,31 @@ class AutoDrive:
 
     def trace(self):
         obs_l, obs_m, obs_r = self.obstacle_detector.get_distance()
-        line_l, line_r = self.line_detector.detect_lines()
+        line_l, line_r, fix_left, fix_right, check = self.line_detector.detect_lines()
         self.line_detector.show_images(line_l, line_r)
-        angle = self.steer(line_l, line_r)
-        speed = self.accelerate(angle, obs_l, obs_m, obs_r)
+        angle = self.steer(line_l, line_r, fix_left, fix_right, check)
+        speed = self.accelerate(angle, obs_l, obs_m, obs_r, check)
         self.driver.drive(angle + 90, speed + 90)
 
-    def steer(self, left, right):
-        mid = (left + right) // 2
-        print("reft",left,"mid",mid,"right", right,)
-        print("")
-        if mid < 280:
-            angle = -40
-        elif mid > 360:
-            angle = 40
+    def steer(self, left, right, fix_l, fix_r, ck):
+        if ck:
+            fix_mid = (fix_l + fix_r) // 2
+            mid = (left + right) // 2
+            angle = -(fix_mid - mid)
+            if abs(angle) < 15:
+                angle = 0
         else:
             angle = 0
         return angle
 
-    def accelerate(self, angle, left, mid, right):
-        if min(left, mid, right) < 50:
-            speed = 0
-        if angle < -20 or angle > 20:
-            speed = 25
+    def accelerate(self, angle, left, mid, right, ck):
+        if ck:
+            if angle == 0:
+                speed = 40
+            else:
+                speed = 30
         else:
-            speed = 30
+            speed = 0
         return speed
 
     def exit(self):
