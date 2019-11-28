@@ -27,12 +27,10 @@ class AutoDrive:
         if ck:
             fix_mid = (fix_l + fix_r) // 2
             mid = (left + right) // 2
-            angle -= (fix_mid - mid)
-            if abs(angle) < 25:
+            angle = -(fix_mid - mid)
+            if abs(angle) < 15:
                 angle = 0
-                if right < fix_r - 15:
-                    angle += 10
-                elif left > fix_l + 15:
+                if left > fix_l + 15:
                     angle -= 10
                 
         else:

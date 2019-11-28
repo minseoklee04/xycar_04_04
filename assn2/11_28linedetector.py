@@ -82,7 +82,7 @@ class LineDetector:
                     right_start = r + self.area_width
                     break
 
-            if right_start != -1 and left_start != -1:
+            if right_start != -1 and left_start != -1 and self.fix_left != -1 and self.fix_right != -1:
                 self.cnt += 1
 
             if left_start != -1:
@@ -148,19 +148,17 @@ class LineDetector:
                     right_start = r + self.area_width
                     break
 
-            if right_start > self.fix_right - 15:
-                for l in range(left_start, lmid):
-                    area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
-                    if cv2.countNonZero(area) > pixel_cnt_threshold:
-                        self.left = l
-                        break
+            for l in range(left_start, lmid):
+                area = self.mask[self.row_begin:self.row_end, l: l + self.area_width]
+                if cv2.countNonZero(area) > pixel_cnt_threshold:
+                    self.left = l
+                    break
 
-            if left_start < self.fix_left + 15:
-                for r in range(right_start, rmid, -1):
-                    area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
-                    if cv2.countNonZero(area) > pixel_cnt_threshold:
-                        self.right = r
-                        break
+            for r in range(right_start, rmid, -1):
+                area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
+                if cv2.countNonZero(area) > pixel_cnt_threshold:
+                    self.right = r
+                    break
 
             print("")
             print("fix_left:", self.fix_left, "fix_right:", self.fix_right)
