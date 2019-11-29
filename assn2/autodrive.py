@@ -30,6 +30,9 @@ class AutoDrive:
             angle = -(fix_mid - mid)
             if abs(angle) < 15:
                 angle = 0
+                if left > fix_l + 25:
+                    angle -= 10
+                
         else:
             angle = 0
         return angle
@@ -38,6 +41,8 @@ class AutoDrive:
         if ck:
             if angle == 0:
                 speed = 40
+            elif abs(angle) <= 10:
+                speed = 35
             else:
                 speed = 30
         else:
