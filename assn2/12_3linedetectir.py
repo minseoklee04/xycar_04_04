@@ -14,7 +14,7 @@ class LineDetector:
         self.roi_vertical_pos = 285
         self.scan_height = 20
         self.image_width = 640
-        self.scan_width = 260
+        self.scan_width = 200
         self.area_width = 20
         self.area_height = 10
         self.row_begin = (self.scan_height - self.area_height) // 2
@@ -147,12 +147,18 @@ class LineDetector:
                     left_start = l - self.area_width
                     break
 
+            if left_start != -1 and abs(self.left - left_start) > 120:
+                left_start = self.left - self.area_width
+
             right_start = -1
             for r in range(rmid, self.image_width - self.area_width):
                 area = bin_1[self.row_begin:self.row_end, r - self.area_width:r]
                 if cv2.countNonZero(area) > 1:
                     right_start = r + self.area_width
                     break
+            
+            if right_start != -1 and abs(self.right - right_start) > 120:
+                right_start = self.right - self.area_width
 
             left = -1
             if left_start != -1:
