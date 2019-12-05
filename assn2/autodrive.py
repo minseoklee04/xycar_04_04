@@ -42,7 +42,7 @@ class AutoDrive:
             if angle == 0:
                 speed = 40
             elif abs(angle) <= 10:
-                speed = 35
+                speed = 40
             else:
                 speed = 30
         else:

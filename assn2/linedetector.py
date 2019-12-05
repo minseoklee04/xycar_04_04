@@ -14,7 +14,7 @@ class LineDetector:
         self.roi_vertical_pos = 285
         self.scan_height = 20
         self.image_width = 640
-        self.scan_width = 260
+        self.scan_width = 200
         self.area_width = 20
         self.area_height = 10
         self.row_begin = (self.scan_height - self.area_height) // 2
