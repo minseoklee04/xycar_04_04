@@ -57,6 +57,31 @@ warp = cv2.warpPerspective(edge.copy(), M, (800, 450))
 
 lines = cv2.HoughLinesP(warp, 1, np.pi/180, 200, 200, 20)
 
+x_list = []
+for line in lines:
+    for li in line:
+        x1, y1, x2, y2 = li
+        if abs(y2 - y1) > 10:
+            if abs(x2 - x1) < 10:
+                x_list.append(x1)
+x_list.sort()
+
+point_x = 0
+x_last_list = []
+x_last_list.append(x_list[0])
+for i in range(1, len(x_list)):
+    if abs(x_list[point_x] - x_list[i]) > 30:
+        point_x = i
+        x_last_list.append(x_list[i])
+print(x_last_list)
+
+cnt_list = []
+for i in range(len(x_last_list) -1):
+    roi = warp[:, x_last_list[i]:x_last_list[i + 1]]
+    cnt_list.append(cv2.countNonZero(roi))
+a = cnt_list.index(min(cnt_list))
+print(x_last_list[a], "부터", x_last_list[a + 1], "까지로 주차 할 수 있습니다.")
+
 warp = cv2.cvtColor(warp, cv2.COLOR_GRAY2BGR)
 
 for line in lines:
@@ -65,7 +90,6 @@ for line in lines:
         if abs(y2 - y1) > 10:
             if abs(x2 - x1) < 10:
                 cv2.line(warp, (x1, y1), (x2, y2), (255, 0, 125), 2)
-                print(x1, y1, x2, y2)
 
 edge = cv2.line(edge, (point[0][0], point[0][1]), (point[1][0], point[1][1]), (255, 0, 125), 2)
 edge = cv2.line(edge, (point[2][0], point[2][1]), (point[3][0], point[3][1]), (255, 0, 125), 2)
