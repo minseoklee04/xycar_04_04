@@ -26,3 +26,4 @@ if  (std_color[0] - 10 < blue_avg < std_color[0] + 10) and (std_color[1] - 10 < 
 	isbreaker = True  # isbreker = True 이면 차동차 정지. 
 
 print isbreaker
+#한계점 - 차단기 규격이 통일되어있지 않음 ==> 빨간색과 하얀색 비율에따라 인식 못할수도있음. 
