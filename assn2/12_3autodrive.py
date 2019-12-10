@@ -35,7 +35,7 @@ class AutoDrive:
                 angle = 0
                 if left < fix_l - 10:
                     angle += 5
-                elif left > fix_l + 10:
+                elif right > fix_r + 10:
                     angle -= 5
         else:
             angle = 0

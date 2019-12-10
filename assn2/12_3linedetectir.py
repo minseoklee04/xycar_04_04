@@ -147,18 +147,12 @@ class LineDetector:
                     left_start = l - self.area_width
                     break
 
-            if left_start != -1 and abs(self.left - left_start) > 120:
-                left_start = self.left - self.area_width
-
             right_start = -1
             for r in range(rmid, self.image_width - self.area_width):
                 area = bin_1[self.row_begin:self.row_end, r - self.area_width:r]
                 if cv2.countNonZero(area) > 1:
                     right_start = r + self.area_width
                     break
-            
-            if right_start != -1 and abs(self.right - right_start) > 120:
-                right_start = self.right - self.area_width
 
             left = -1
             if left_start != -1:
@@ -173,54 +167,56 @@ class LineDetector:
                 for r in range(right_start, rmid, -1):
                     area = self.mask[self.row_begin:self.row_end, r - self.area_width: r]
                     if cv2.countNonZero(area) > pixel_cnt_threshold:
-                        right = r
+                        self.right = r
                         break
+            
+            if right != -1 and left != -1:
+                if abs(self.right - right) > abs(self.right - right_start):
+                    right = right_start
 
-            if left == -1 and right == -1:
-                return self.left, self.right, self.fix_left, self.fix_right, self.check
+                if abs(self.left - left) > abs(self.left - left_start):
+                    left = left_start
 
+                if abs(self.fix_left - left) <= 15:
+                    if abs(self.fix_right - right) > 15:
+                        self.right = self.fix_right + (self.fix_left - left)
+                        self.left = left
+                    else:
+                        self.right = right
+                        self.left = left
+
+                elif abs(self.fix_right - right) <= 15:
+                    if abs(self.fix_left - left) > 15:
+                        self.right = right
+                        self.left = self.fix_left + (self.fix_right - right)
+                    else:
+                        self.right = right
+                        self.left = left
+
+                elif self.fix_left - left < -20:
+                    if self.fix_right - right >= -15:
+                        self.left = left
+                        self.right = self.fix_right + (self.fix_left - left)
+                    else:
+                        self.right = right
+                        self.left = left
+
+                elif self.fix_left - left > 20:
+                    if self.fix_right - right <= 15:
+                        self.right = self.fix_right + (self.fix_left - left)
+                    else:
+                        self.right = right
+                        self.left = left
+            
             if self.cnt < 50:
                 self.right = self.fix_right
                 self.left = self.fix_left
                 self.cnt += 1
-                return self.left, self.right, self.fix_left, self.fix_right, self.check
 
-            if abs(self.right - right) > abs(self.right - right_start):
-                right = right_start
-
-            if abs(self.left - left) > abs(self.left - left_start):
-                left = left_start
-
-            if abs(self.fix_left - left) <= 15:
-                if abs(self.fix_right - right) > 15:
-                    self.right = self.fix_right + (self.fix_left - left)
-                    self.left = left
-                else:
-                    self.right = right
-                    self.left = left
-
-            elif abs(self.fix_right - right) <= 15:
-                if abs(self.fix_left - left) > 15:
-                    self.right = right
-                    self.left = self.fix_left + (self.fix_right - right)
-                else:
-                    self.right = right
-                    self.left = left
-
-            elif self.fix_left - left < -20:
-                if self.fix_right - right >= -15:
-                    self.left = left
-                    self.right = self.fix_right + (self.fix_left - left)
-                else:
-                    self.right = right
-                    self.left = left
-
-            elif self.fix_left - left > 20:
-                if self.fix_right - right <= 15:
-                    self.right = self.fix_right + (self.fix_left - left)
-                else:
-                    self.right = right
-                    self.left = left
+            print("")
+            print("fix_left:", self.fix_left, "fix_right:", self.fix_right)
+            print("left:", left, "right:", right)
+            print("start_l:", left_start, "start_r", right_start)
 
             # Return positions of left and right lines detected.
             return self.left, self.right, self.fix_left, self.fix_right, self.check
